@@ -28,22 +28,21 @@ import javafx.stage.Stage;
 public class WindowController {
 	TableView<Item> tableView;
 	TextField searchField;
-	// Button searchButton;
-	// Button resetButton;
 	private ObservableList<Item> toAddList = FXCollections.observableArrayList(testItems());
-	private ObservableList<Item> backupList = FXCollections.observableArrayList();
 	private ObservableList<Item> showList = FXCollections.observableArrayList();
 
 	public List<Item> testItems() {
 		List<Item> list = new ArrayList<Item>();
 		Item bronzeOre = new Item(1234, "Bronze Ore", "blackore.png", "Material used for crafting bronze products.",
-				"Hidell Plains", 7, 0, Type.MATERIALS, MaterialTypes.ORE, null);
+				new ArrayList<>(), 7, 0, Type.MATERIALS, MaterialTypes.ORE, null);
+		bronzeOre.getLocations().add("Hidell Plains");
 		Item smallHorn = new Item(4421, "Small Horn", "smallhorn.png",
-				"A horn extracted from a goblin. Used in crafting.", "Goblin", 10, 0, Type.MATERIALS,
+				"A horn extracted from a goblin. Used in crafting.", new ArrayList<>(), 10, 0, Type.MATERIALS,
 				MaterialTypes.HORN, null);
+		smallHorn.getLocations().add("Goblin");
 		Item bronzeIngot = new Item(1332, "Bronze Ingot", "blueingot.png",
-				"Processed from bronze ore, used for crafting.", "", 10, 60, Type.MATERIALS, MaterialTypes.METALINGOT,
-				new ArrayList());
+				"Processed from bronze ore, used for crafting.", new ArrayList<>(), 10, 60, Type.MATERIALS,
+				MaterialTypes.METALINGOT, new ArrayList());
 		bronzeIngot.getProductOfList().add(new ProductOf(2, bronzeOre));
 		bronzeIngot.getProductOfList().add(new ProductOf(1, smallHorn));
 
@@ -73,7 +72,37 @@ public class WindowController {
 		tableView.setItems(FXCollections.observableArrayList(testItems()));
 	}
 
-	public void search2(String search) {
+	public void filter(Type filter) {
+		ObservableList<Item> items = toAddList;
+		if (items != null) {
+			if (!filter.equals(Type.ALL)) {
+				items.filtered(new Predicate<Item>() {
+
+					@Override
+					public boolean test(Item t) {
+						if (t.getType().equals(filter)) {
+							if (!showList.contains(t)) {
+								showList.add(t);
+							}
+						} else {
+							showList.remove(t);
+						}
+						return false;
+					}
+				});
+			} else if (filter.equals(Type.ALL)) {
+				for (Item item : toAddList) {
+					if (!showList.contains(item)) {
+						showList.add(item);
+					}
+				}
+			}
+
+			tableView.setItems(showList);
+		}
+	}
+
+	public void search(String search) {
 		ObservableList<Item> items = toAddList;
 		if (items != null) {
 			items.filtered(new Predicate<Item>() {
@@ -104,7 +133,7 @@ public class WindowController {
 			@Override
 			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
 				if (!newValue.isEmpty()) {
-					search2(newValue);
+					search(newValue);
 				} else {
 					showAll();
 				}
@@ -121,7 +150,7 @@ public class WindowController {
 		listView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Type>() {
 
 			public void changed(ObservableValue<? extends Type> observable, Type oldValue, Type newValue) {
-				System.err.println(newValue);
+				filter(newValue);
 			}
 		});
 		vBox.getChildren().add(hBox);
@@ -132,7 +161,6 @@ public class WindowController {
 
 	public TableView<Item> initCenter() {
 		tableView = new TableView<Item>();
-
 		TableColumn<Item, String> numberColumn = new TableColumn<Item, String>("ITEM-Nummer");
 		numberColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("number"));
 		TableColumn<Item, String> nameColumn = new TableColumn<Item, String>("Name");
@@ -191,7 +219,6 @@ public class WindowController {
 		tableView.getColumns().add(typeColumn);
 		tableView.getColumns().add(subTypeColumn);
 		tableView.getColumns().add(productOfColumn);
-
 		tableView.setItems(FXCollections.observableList(testItems()));
 		return tableView;
 

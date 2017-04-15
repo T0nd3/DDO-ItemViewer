@@ -13,7 +13,7 @@ public class Item {
 	private String name;
 	private String picture;
 	private String description;
-	private String location;
+	private List<String> locations;
 	private int goldValue;
 	private int forgeCost;
 	private Type type;
@@ -25,14 +25,14 @@ public class Item {
 
 	}
 
-	public Item(int number, String name, String picture, String description, String location, int goldValue,
+	public Item(int number, String name, String picture, String description, List<String> locations, int goldValue,
 			int forgeCost, Type type, Subtype subType, List<ProductOf> productOfList) {
 		super();
 		this.number = number;
 		this.name = name;
 		this.picture = picture;
 		this.description = description;
-		this.location = location;
+		this.locations = locations;
 		this.goldValue = goldValue;
 		this.forgeCost = forgeCost;
 		this.type = type;
@@ -72,12 +72,12 @@ public class Item {
 		this.description = description;
 	}
 
-	public String getLocation() {
-		return location;
+	public List<String> getLocations() {
+		return locations;
 	}
 
-	public void setLocation(String location) {
-		this.location = location;
+	public void setLocation(List<String> locations) {
+		this.locations = locations;
 	}
 
 	public int getGoldValue() {
