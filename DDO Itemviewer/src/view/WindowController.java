@@ -1,16 +1,18 @@
 package view;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.function.Predicate;
 
 import beans.Item;
+import beans.ProductOf;
 import enums.MaterialTypes;
 import enums.Type;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.event.EventHandler;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.scene.Scene;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
@@ -18,13 +20,18 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class WindowController {
+	TableView<Item> tableView;
+	TextField searchField;
+	// Button searchButton;
+	// Button resetButton;
+	private ObservableList<Item> backupList = FXCollections.observableArrayList();
 
 	public List<Item> testItems() {
 		List<Item> list = new ArrayList<Item>();
@@ -35,9 +42,9 @@ public class WindowController {
 				MaterialTypes.HORN, null);
 		Item bronzeIngot = new Item(1332, "Bronze Ingot", "blueingot.png",
 				"Processed from bronze ore, used for crafting.", "", 10, 60, Type.MATERIALS, MaterialTypes.METALINGOT,
-				new HashMap<Item, Integer>());
-		bronzeIngot.getProductOf().put(bronzeOre, 2);
-		bronzeIngot.getProductOf().put(smallHorn, 1);
+				new ArrayList());
+		bronzeIngot.getProductOfList().add(new ProductOf(2, bronzeOre));
+		bronzeIngot.getProductOfList().add(new ProductOf(1, smallHorn));
 
 		list.add(bronzeIngot);
 		list.add(bronzeOre);
@@ -60,16 +67,93 @@ public class WindowController {
 		stage.show();
 	}
 
+	public void showAll() {
+		System.err.println("reset");
+		tableView.setItems(FXCollections.observableArrayList(testItems()));
+	}
+
+	public void search(String search) {
+		ObservableList<Item> items = tableView.getItems();
+		for (Item item : items) {
+			if (!item.getName().contains(search)) {
+				items.remove(item);
+			}
+		}
+	}
+
+	public void search2(String search) {
+		ObservableList<Item> items = tableView.getItems();
+		// items.removeIf(new Predicate<Item>() {
+		//
+		// @Override
+		// public boolean test(Item t) {
+		// if (t.getName().contains(search)) {
+		// return false;
+		// } else {
+		// return true;
+		// }
+		// }
+		// });
+
+		FilteredList<Item> filtered = items.filtered(new Predicate<Item>() {
+
+			@Override
+			public boolean test(Item t) {
+				if (t.getName().contains(search)) {
+					return true;
+				} else {
+					backupList.add(t);
+					return false;
+				}
+			}
+		});
+		if (!backupList.isEmpty()) {
+			backupList.filtered(new Predicate<Item>() {
+
+				@Override
+				public boolean test(Item t) {
+					if (t.getName().contains(search)) {
+
+						filtered.add(t);
+						return true;
+					} else {
+						return false;
+					}
+
+				}
+			});
+		}
+
+		tableView.setItems(filtered);
+	}
+
 	public Pane initLeftSide() {
 		VBox vBox = new VBox();
-		TextField searchField = new TextField();
-		searchField.addEventHandler(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+		HBox hBox = new HBox();
+		searchField = new TextField();
 
-			public void handle(KeyEvent event) {
-				System.err.println(event.getCode());
+		searchField.textProperty().addListener(new ChangeListener<String>() {
+
+			@Override
+			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+				if (!newValue.isEmpty()) {
+					search2(newValue);
+				} else {
+					showAll();
+				}
 			}
-
 		});
+		hBox.getChildren().add(searchField);
+		// hBox.getChildren().add(searchButton);
+		// hBox.getChildren().add(resetButton);
+		// searchButton.setOnAction(new EventHandler<ActionEvent>() {
+		//
+		// @Override
+		// public void handle(ActionEvent event) {
+		// search2(searchField.getText());
+		// }
+		// });
+
 		ListView<Type> listView = new ListView<Type>();
 		Type[] values = Type.values();
 		List<Type> list = new ArrayList<Type>();
@@ -83,35 +167,62 @@ public class WindowController {
 				System.err.println(newValue);
 			}
 		});
-		vBox.getChildren().add(searchField);
+		vBox.getChildren().add(hBox);
 		vBox.getChildren().add(listView);
 		return vBox;
 
 	}
 
 	public TableView<Item> initCenter() {
-		TableView<Item> tableView = new TableView<Item>();
+		tableView = new TableView<Item>();
 
-		TableColumn<Item, String> numberColumn = new TableColumn<Item, String>();
+		TableColumn<Item, String> numberColumn = new TableColumn<Item, String>("ITEM-Nummer");
 		numberColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("number"));
-		TableColumn<Item, String> nameColumn = new TableColumn<Item, String>();
+		TableColumn<Item, String> nameColumn = new TableColumn<Item, String>("Name");
 		nameColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("Name"));
-		TableColumn<Item, Image> iconColumn = new TableColumn<Item, Image>();
-		iconColumn.setCellValueFactory(new PropertyValueFactory<Item, Image>("Photo"));
-		TableColumn<Item, String> descriptionColumn = new TableColumn<Item, String>();
+		TableColumn<Item, Image> iconColumn = new TableColumn<Item, Image>("PIC");
+		iconColumn.setCellValueFactory(new PropertyValueFactory<Item, Image>("picture"));
+		TableColumn<Item, String> descriptionColumn = new TableColumn<Item, String>("Description");
 		descriptionColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("description"));
-		TableColumn<Item, String> locationColumn = new TableColumn<Item, String>();
+		TableColumn<Item, String> locationColumn = new TableColumn<Item, String>("Location");
 		locationColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("location"));
-		TableColumn<Item, String> goldValueColumn = new TableColumn<Item, String>();
-		goldValueColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("Gold Value"));
-		TableColumn<Item, String> forgeCostColumn = new TableColumn<Item, String>();
-		forgeCostColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("Forgecost"));
-		TableColumn<Item, String> typeColumn = new TableColumn<Item, String>();
+		TableColumn<Item, Integer> goldValueColumn = new TableColumn<Item, Integer>("Gold Value");
+		goldValueColumn.setCellValueFactory(new PropertyValueFactory<Item, Integer>("goldValue"));
+		TableColumn<Item, Integer> forgeCostColumn = new TableColumn<Item, Integer>("Forgecost");
+		forgeCostColumn.setCellValueFactory(new PropertyValueFactory<Item, Integer>("forgeCost"));
+		TableColumn<Item, String> typeColumn = new TableColumn<Item, String>("Type");
 		typeColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("Type"));
-		TableColumn<Item, String> subTypeColumn = new TableColumn<Item, String>();
+		TableColumn<Item, String> subTypeColumn = new TableColumn<Item, String>("SubType");
 		subTypeColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("SubType"));
-		TableColumn<Item, String> productOfColumn = new TableColumn<Item, String>();
-		productOfColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("ProductOf"));
+		TableColumn<Item, String> productOfColumn = new TableColumn<Item, String>("ProductOf");
+		// productOfColumn.setCellValueFactory(new PropertyValueFactory<Item,
+		// String>("productOfList"));
+		// productOfColumn.setCellFactory(col -> {
+		// ListView<ProductOf> listView = new ListView<>();
+		// listView.setCellFactory(lv -> new ListCell<ProductOf>() {
+		// @Override
+		// public void updateItem(ProductOf person, boolean empty) {
+		// super.updateItem(person, empty);
+		// if (empty) {
+		// setText(null);
+		// } else {
+		// setText(person.getItem().getName());
+		// }
+		// }
+		// });
+		// return new TableCell<Item, List<ProductOf>>() {
+		// @Override
+		// public void updateItem(List<ProductOf> friends, boolean empty) {
+		// super.updateItem(friends, empty);
+		// if (empty) {
+		// setGraphic(null);
+		// } else {
+		// listView.getItems().setAll(friends);
+		// setGraphic(listView);
+		// }
+		// }
+		// };
+		// });
 
 		tableView.getColumns().add(iconColumn);
 		tableView.getColumns().add(nameColumn);

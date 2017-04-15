@@ -1,6 +1,6 @@
 package beans;
 
-import java.util.Map;
+import java.util.List;
 
 import javax.persistence.Entity;
 
@@ -18,14 +18,15 @@ public class Item {
 	private int forgeCost;
 	private Type type;
 	private Subtype subType;
-	private Map<Item, Integer> productOf;
+
+	private List<ProductOf> productOfList;
 
 	public Item() {
 
 	}
 
 	public Item(int number, String name, String picture, String description, String location, int goldValue,
-			int forgeCost, Type type, Subtype subType, Map<Item, Integer> productOf) {
+			int forgeCost, Type type, Subtype subType, List<ProductOf> productOfList) {
 		super();
 		this.number = number;
 		this.name = name;
@@ -36,7 +37,7 @@ public class Item {
 		this.forgeCost = forgeCost;
 		this.type = type;
 		this.subType = subType;
-		this.productOf = productOf;
+		this.productOfList = productOfList;
 	}
 
 	public int getNumber() {
@@ -111,12 +112,12 @@ public class Item {
 		this.subType = subType;
 	}
 
-	public Map<Item, Integer> getProductOf() {
-		return productOf;
+	public List<ProductOf> getProductOfList() {
+		return productOfList;
 	}
 
-	public void setProductOf(Map<Item, Integer> productOf) {
-		this.productOf = productOf;
+	public void setProductOfList(List<ProductOf> productOfList) {
+		this.productOfList = productOfList;
 	}
 
 }
