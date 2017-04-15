@@ -12,7 +12,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.scene.Scene;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
@@ -31,7 +30,9 @@ public class WindowController {
 	TextField searchField;
 	// Button searchButton;
 	// Button resetButton;
+	private ObservableList<Item> toAddList = FXCollections.observableArrayList(testItems());
 	private ObservableList<Item> backupList = FXCollections.observableArrayList();
+	private ObservableList<Item> showList = FXCollections.observableArrayList();
 
 	public List<Item> testItems() {
 		List<Item> list = new ArrayList<Item>();
@@ -72,59 +73,25 @@ public class WindowController {
 		tableView.setItems(FXCollections.observableArrayList(testItems()));
 	}
 
-	public void search(String search) {
-		ObservableList<Item> items = tableView.getItems();
-		for (Item item : items) {
-			if (!item.getName().contains(search)) {
-				items.remove(item);
-			}
-		}
-	}
-
 	public void search2(String search) {
-		ObservableList<Item> items = tableView.getItems();
-		// items.removeIf(new Predicate<Item>() {
-		//
-		// @Override
-		// public boolean test(Item t) {
-		// if (t.getName().contains(search)) {
-		// return false;
-		// } else {
-		// return true;
-		// }
-		// }
-		// });
-
-		FilteredList<Item> filtered = items.filtered(new Predicate<Item>() {
-
-			@Override
-			public boolean test(Item t) {
-				if (t.getName().contains(search)) {
-					return true;
-				} else {
-					backupList.add(t);
-					return false;
-				}
-			}
-		});
-		if (!backupList.isEmpty()) {
-			backupList.filtered(new Predicate<Item>() {
+		ObservableList<Item> items = toAddList;
+		if (items != null) {
+			items.filtered(new Predicate<Item>() {
 
 				@Override
 				public boolean test(Item t) {
 					if (t.getName().contains(search)) {
-
-						filtered.add(t);
-						return true;
+						if (!showList.contains(t)) {
+							showList.add(t);
+						}
 					} else {
-						return false;
+						showList.remove(t);
 					}
-
+					return false;
 				}
 			});
 		}
-
-		tableView.setItems(filtered);
+		tableView.setItems(showList);
 	}
 
 	public Pane initLeftSide() {
@@ -144,16 +111,6 @@ public class WindowController {
 			}
 		});
 		hBox.getChildren().add(searchField);
-		// hBox.getChildren().add(searchButton);
-		// hBox.getChildren().add(resetButton);
-		// searchButton.setOnAction(new EventHandler<ActionEvent>() {
-		//
-		// @Override
-		// public void handle(ActionEvent event) {
-		// search2(searchField.getText());
-		// }
-		// });
-
 		ListView<Type> listView = new ListView<Type>();
 		Type[] values = Type.values();
 		List<Type> list = new ArrayList<Type>();
