@@ -24,6 +24,7 @@ public class Item {
 
 	public Item(int number, String name, String picture, String description, List<String> locations, int goldValue,
 			int forgeCost, Type type, Subtype subType, List<ProductOf> productOfList) {
+		super();
 		this.number = number;
 		this.name = name;
 		this.picture = picture;

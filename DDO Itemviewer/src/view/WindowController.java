@@ -34,15 +34,15 @@ public class WindowController {
 	public List<Item> testItems() {
 		List<Item> list = new ArrayList<Item>();
 		Item bronzeOre = new Item(1234, "Bronze Ore", "blackore.png", "Material used for crafting bronze products.",
-				new ArrayList<>(), 7, 0, Type.MATERIALS, MaterialTypes.ORE, null);
+				new ArrayList<String>(), 7, 0, Type.MATERIALS, MaterialTypes.ORE, new ArrayList<ProductOf>());
 		bronzeOre.getLocations().add("Hidell Plains");
 		Item smallHorn = new Item(4421, "Small Horn", "smallhorn.png",
-				"A horn extracted from a goblin. Used in crafting.", new ArrayList<>(), 10, 0, Type.MATERIALS,
-				MaterialTypes.HORN, null);
+				"A horn extracted from a goblin. Used in crafting.", new ArrayList<String>(), 10, 0, Type.MATERIALS,
+				MaterialTypes.HORN, new ArrayList<ProductOf>());
 		smallHorn.getLocations().add("Goblin");
 		Item bronzeIngot = new Item(1332, "Bronze Ingot", "blueingot.png",
-				"Processed from bronze ore, used for crafting.", new ArrayList<>(), 10, 60, Type.MATERIALS,
-				MaterialTypes.METALINGOT, new ArrayList());
+				"Processed from bronze ore, used for crafting.", new ArrayList<String>(), 10, 60, Type.MATERIALS,
+				MaterialTypes.METALINGOT, new ArrayList<ProductOf>());
 		bronzeIngot.getProductOfList().add(new ProductOf(2, bronzeOre));
 		bronzeIngot.getProductOfList().add(new ProductOf(1, smallHorn));
 
@@ -72,13 +72,12 @@ public class WindowController {
 		tableView.setItems(FXCollections.observableArrayList(testItems()));
 	}
 
-	public void filter(Type filter) {
+	public void filter(final Type filter) {
 		ObservableList<Item> items = toAddList;
 		if (items != null) {
 			if (!filter.equals(Type.ALL)) {
 				items.filtered(new Predicate<Item>() {
 
-					@Override
 					public boolean test(Item t) {
 						if (t.getType().equals(filter)) {
 							if (!showList.contains(t)) {
@@ -89,6 +88,7 @@ public class WindowController {
 						}
 						return false;
 					}
+
 				});
 			} else if (filter.equals(Type.ALL)) {
 				for (Item item : toAddList) {
@@ -100,14 +100,14 @@ public class WindowController {
 
 			tableView.setItems(showList);
 		}
+
 	}
 
-	public void search(String search) {
+	public void search(final String search) {
 		ObservableList<Item> items = toAddList;
 		if (items != null) {
 			items.filtered(new Predicate<Item>() {
 
-				@Override
 				public boolean test(Item t) {
 					if (t.getName().contains(search)) {
 						if (!showList.contains(t)) {
@@ -130,7 +130,6 @@ public class WindowController {
 
 		searchField.textProperty().addListener(new ChangeListener<String>() {
 
-			@Override
 			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
 				if (!newValue.isEmpty()) {
 					search(newValue);
@@ -139,6 +138,7 @@ public class WindowController {
 				}
 			}
 		});
+
 		hBox.getChildren().add(searchField);
 		ListView<Type> listView = new ListView<Type>();
 		Type[] values = Type.values();
@@ -152,6 +152,7 @@ public class WindowController {
 			public void changed(ObservableValue<? extends Type> observable, Type oldValue, Type newValue) {
 				filter(newValue);
 			}
+
 		});
 		vBox.getChildren().add(hBox);
 		vBox.getChildren().add(listView);
