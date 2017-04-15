@@ -180,34 +180,6 @@ public class WindowController {
 		TableColumn<Item, String> subTypeColumn = new TableColumn<Item, String>("SubType");
 		subTypeColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("SubType"));
 		TableColumn<Item, String> productOfColumn = new TableColumn<Item, String>("ProductOf");
-		// productOfColumn.setCellValueFactory(new PropertyValueFactory<Item,
-		// String>("productOfList"));
-		// productOfColumn.setCellFactory(col -> {
-		// ListView<ProductOf> listView = new ListView<>();
-		// listView.setCellFactory(lv -> new ListCell<ProductOf>() {
-		// @Override
-		// public void updateItem(ProductOf person, boolean empty) {
-		// super.updateItem(person, empty);
-		// if (empty) {
-		// setText(null);
-		// } else {
-		// setText(person.getItem().getName());
-		// }
-		// }
-		// });
-		// return new TableCell<Item, List<ProductOf>>() {
-		// @Override
-		// public void updateItem(List<ProductOf> friends, boolean empty) {
-		// super.updateItem(friends, empty);
-		// if (empty) {
-		// setGraphic(null);
-		// } else {
-		// listView.getItems().setAll(friends);
-		// setGraphic(listView);
-		// }
-		// }
-		// };
-		// });
 
 		tableView.getColumns().add(iconColumn);
 		tableView.getColumns().add(nameColumn);

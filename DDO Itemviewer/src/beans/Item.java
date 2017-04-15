@@ -2,11 +2,8 @@ package beans;
 
 import java.util.List;
 
-import javax.persistence.Entity;
-
 import enums.Type;
 
-@Entity
 public class Item {
 
 	private int number;
@@ -27,7 +24,6 @@ public class Item {
 
 	public Item(int number, String name, String picture, String description, List<String> locations, int goldValue,
 			int forgeCost, Type type, Subtype subType, List<ProductOf> productOfList) {
-		super();
 		this.number = number;
 		this.name = name;
 		this.picture = picture;
