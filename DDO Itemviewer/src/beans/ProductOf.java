@@ -5,6 +5,9 @@ public class ProductOf {
 	private int counter;
 	private Item item;
 
+	public ProductOf() {
+	}
+
 	public ProductOf(int counter, Item item) {
 		super();
 		this.counter = counter;

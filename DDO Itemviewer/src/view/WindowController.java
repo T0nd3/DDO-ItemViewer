@@ -1,18 +1,29 @@
 package view;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import beans.Item;
 import beans.ProductOf;
-import enums.MaterialTypes;
+import enums.SpecificType;
 import enums.Type;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -24,25 +35,27 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import utils.Mapper;
 
 public class WindowController {
 	TableView<Item> tableView;
 	TextField searchField;
-	private ObservableList<Item> toAddList = FXCollections.observableArrayList(testItems());
+	private ObservableList<Item> toAddList;
 	private ObservableList<Item> showList = FXCollections.observableArrayList();
+	ObjectMapper mapper;
 
 	public List<Item> testItems() {
 		List<Item> list = new ArrayList<Item>();
 		Item bronzeOre = new Item(1234, "Bronze Ore", "blackore.png", "Material used for crafting bronze products.",
-				new ArrayList<String>(), 7, 0, Type.MATERIALS, MaterialTypes.ORE, new ArrayList<ProductOf>());
+				new ArrayList<String>(), 7, 0, Type.MATERIALS, SpecificType.ORE, new ArrayList<ProductOf>());
 		bronzeOre.getLocations().add("Hidell Plains");
 		Item smallHorn = new Item(4421, "Small Horn", "smallhorn.png",
 				"A horn extracted from a goblin. Used in crafting.", new ArrayList<String>(), 10, 0, Type.MATERIALS,
-				MaterialTypes.HORN, new ArrayList<ProductOf>());
+				SpecificType.HORN, new ArrayList<ProductOf>());
 		smallHorn.getLocations().add("Goblin");
 		Item bronzeIngot = new Item(1332, "Bronze Ingot", "blueingot.png",
 				"Processed from bronze ore, used for crafting.", new ArrayList<String>(), 10, 60, Type.MATERIALS,
-				MaterialTypes.METALINGOT, new ArrayList<ProductOf>());
+				SpecificType.METALINGOT, new ArrayList<ProductOf>());
 		bronzeIngot.getProductOfList().add(new ProductOf(2, bronzeOre));
 		bronzeIngot.getProductOfList().add(new ProductOf(1, smallHorn));
 
@@ -58,7 +71,29 @@ public class WindowController {
 
 	}
 
+	public List<Item> loadData() {
+		TypeReference<List<Item>> typeReference = new TypeReference<List<Item>>() {
+		};
+		ArrayList<Item> l = new ArrayList<Item>();
+		try {
+			Object readValue = mapper.readValue(new File("test.json"), typeReference);
+			// System.err.println(readValue);
+			// List<Item>
+			l = (ArrayList<Item>) readValue;
+			System.err.println(l);
+		} catch (JsonParseException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return l;
+	}
+
 	public void init(Stage stage) {
+		mapper = Mapper.getMapper();
+		toAddList = FXCollections.observableArrayList(loadData());
 		stage = new Stage();
 		BorderPane main = new BorderPane();
 		stage.setScene(new Scene(main));
@@ -68,8 +103,7 @@ public class WindowController {
 	}
 
 	public void showAll() {
-		System.err.println("reset");
-		tableView.setItems(FXCollections.observableArrayList(testItems()));
+		tableView.setItems(toAddList);
 	}
 
 	public void filter(final Type filter) {
@@ -126,8 +160,26 @@ public class WindowController {
 	public Pane initLeftSide() {
 		VBox vBox = new VBox();
 		HBox hBox = new HBox();
-		searchField = new TextField();
+		Button v = new Button();
+		v.setOnAction(new EventHandler<ActionEvent>() {
 
+			public void handle(ActionEvent event) {
+				try {
+					mapper.writeValue(new File("test.json"), testItems());
+				} catch (JsonGenerationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (JsonMappingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		searchField = new TextField();
+		searchField.setPromptText("Itemname");
 		searchField.textProperty().addListener(new ChangeListener<String>() {
 
 			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -140,6 +192,7 @@ public class WindowController {
 		});
 
 		hBox.getChildren().add(searchField);
+		hBox.getChildren().add(v);
 		ListView<Type> listView = new ListView<Type>();
 		Type[] values = Type.values();
 		List<Type> list = new ArrayList<Type>();
@@ -192,7 +245,7 @@ public class WindowController {
 		tableView.getColumns().add(typeColumn);
 		tableView.getColumns().add(subTypeColumn);
 		tableView.getColumns().add(productOfColumn);
-		tableView.setItems(FXCollections.observableList(testItems()));
+		tableView.setItems(toAddList);
 		return tableView;
 
 	}
