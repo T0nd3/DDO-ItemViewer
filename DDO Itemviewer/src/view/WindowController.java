@@ -2,9 +2,16 @@ package view;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -14,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import beans.Item;
 import beans.ProductOf;
-import enums.SpecificType;
 import enums.Type;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -35,39 +41,64 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import test.FileLoader;
 import utils.Mapper;
 
 public class WindowController {
-	TableView<Item> tableView;
-	TextField searchField;
+	private TableView<Item> tableView;
+	private TextField searchField;
 	private ObservableList<Item> toAddList;
 	private ObservableList<Item> showList = FXCollections.observableArrayList();
-	ObjectMapper mapper;
+	private ObjectMapper mapper;
+	private FileLoader loader;
+	private List<URL> URLS = new ArrayList<URL>();
 
-	public List<Item> testItems() {
-		List<Item> list = new ArrayList<Item>();
-		Item bronzeOre = new Item(1234, "Bronze Ore", "blackore.png", "Material used for crafting bronze products.",
-				new ArrayList<String>(), 7, 0, Type.MATERIALS, SpecificType.ORE, new ArrayList<ProductOf>());
-		bronzeOre.getLocations().add("Hidell Plains");
-		Item smallHorn = new Item(4421, "Small Horn", "smallhorn.png",
-				"A horn extracted from a goblin. Used in crafting.", new ArrayList<String>(), 10, 0, Type.MATERIALS,
-				SpecificType.HORN, new ArrayList<ProductOf>());
-		smallHorn.getLocations().add("Goblin");
-		Item bronzeIngot = new Item(1332, "Bronze Ingot", "blueingot.png",
-				"Processed from bronze ore, used for crafting.", new ArrayList<String>(), 10, 60, Type.MATERIALS,
-				SpecificType.METALINGOT, new ArrayList<ProductOf>());
-		bronzeIngot.getProductOfList().add(new ProductOf(2, bronzeOre));
-		bronzeIngot.getProductOfList().add(new ProductOf(1, smallHorn));
+	// public List<Item> testItems() {
+	// List<Item> list = new ArrayList<Item>();
+	// Item bronzeOre = new Item("Bronze Ore", "blackore.png", "Material used
+	// for crafting bronze products.",
+	// new ArrayList<String>(), 7, 0, Type.MATERIALS, new
+	// ArrayList<ProductOf>());
+	// bronzeOre.getLocations().add("Hidell Plains");
+	// Item smallHorn = new Item("Small Horn", "smallhorn.png", "A horn
+	// extracted from a goblin. Used in crafting.",
+	// new ArrayList<String>(), 10, 0, Type.MATERIALS, new
+	// ArrayList<ProductOf>());
+	// smallHorn.getLocations().add("Goblin");
+	// Item bronzeIngot = new Item("Bronze Ingot", "blueingot.png", "Processed
+	// from bronze ore, used for crafting.",
+	// new ArrayList<String>(), 10, 60, Type.MATERIALS, new
+	// ArrayList<ProductOf>());
+	// bronzeIngot.getProductOfList().add(new ProductOf(2, bronzeOre));
+	// bronzeIngot.getProductOfList().add(new ProductOf(1, smallHorn));
+	//
+	// list.add(bronzeIngot);
+	// list.add(bronzeOre);
+	// list.add(smallHorn);
+	// return list;
+	//
+	// }
 
-		list.add(bronzeIngot);
-		list.add(bronzeOre);
-		list.add(smallHorn);
-		return list;
+	public void start(Stage stage) throws MalformedURLException {
+		init(stage);
 
 	}
 
-	public void start(Stage stage) {
-		init(stage);
+	public void getURLS() throws IOException {
+		URL urlmain = new URL("http://ddon.wikidot.com/ore:home");
+		Document doc = Jsoup.connect(urlmain.toString()).get();
+		Elements tables = doc.select("table");
+		for (Element row : tables.select("tr")) {
+			Elements td = row.select("td");
+			Elements select = td.select("a");
+			String string = select.toString();
+
+			String[] split = string.split("\"");
+			if (split.length > 1) {
+				URLS.add(new URL("http://ddon.wikidot.com" + split[1]));
+			}
+
+		}
 
 	}
 
@@ -77,10 +108,7 @@ public class WindowController {
 		ArrayList<Item> l = new ArrayList<Item>();
 		try {
 			Object readValue = mapper.readValue(new File("test.json"), typeReference);
-			// System.err.println(readValue);
-			// List<Item>
 			l = (ArrayList<Item>) readValue;
-			System.err.println(l);
 		} catch (JsonParseException e) {
 			e.printStackTrace();
 		} catch (JsonMappingException e) {
@@ -91,8 +119,14 @@ public class WindowController {
 		return l;
 	}
 
-	public void init(Stage stage) {
+	public void init(Stage stage) throws MalformedURLException {
 		mapper = Mapper.getMapper();
+		loader = new FileLoader();
+		try {
+			getURLS();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		toAddList = FXCollections.observableArrayList(loadData());
 		stage = new Stage();
 		BorderPane main = new BorderPane();
@@ -164,16 +198,30 @@ public class WindowController {
 		v.setOnAction(new EventHandler<ActionEvent>() {
 
 			public void handle(ActionEvent event) {
+				List<Item> toPersist = new ArrayList<Item>();
+				for (URL url : URLS) {
+					try {
+						List<String> loadInfos = loader.loadInfos(url);
+						String string = loadInfos.get(4);
+						String replace = string.replace(" G", "");
+						Item item = new Item(loadInfos.get(2), loadInfos.get(1), loadInfos.get(6),
+								new ArrayList<String>(), Integer.parseInt(replace), Integer.parseInt(loadInfos.get(3)),
+								Type.MATERIALS, new ArrayList<ProductOf>());
+						for (int x = 7; x < loadInfos.size(); x++) {
+							item.getLocations().add(loadInfos.get(x));
+						}
+						toPersist.add(item);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
 				try {
-					mapper.writeValue(new File("test.json"), testItems());
+					mapper.writeValue(new File("test.json"), toPersist);
 				} catch (JsonGenerationException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (JsonMappingException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -215,8 +263,6 @@ public class WindowController {
 
 	public TableView<Item> initCenter() {
 		tableView = new TableView<Item>();
-		TableColumn<Item, String> numberColumn = new TableColumn<Item, String>("ITEM-Nummer");
-		numberColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("number"));
 		TableColumn<Item, String> nameColumn = new TableColumn<Item, String>("Name");
 		nameColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("Name"));
 		TableColumn<Item, Image> iconColumn = new TableColumn<Item, Image>("PIC");
@@ -231,19 +277,15 @@ public class WindowController {
 		forgeCostColumn.setCellValueFactory(new PropertyValueFactory<Item, Integer>("forgeCost"));
 		TableColumn<Item, String> typeColumn = new TableColumn<Item, String>("Type");
 		typeColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("Type"));
-		TableColumn<Item, String> subTypeColumn = new TableColumn<Item, String>("SubType");
-		subTypeColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("SubType"));
 		TableColumn<Item, String> productOfColumn = new TableColumn<Item, String>("ProductOf");
 
 		tableView.getColumns().add(iconColumn);
 		tableView.getColumns().add(nameColumn);
-		tableView.getColumns().add(numberColumn);
 		tableView.getColumns().add(descriptionColumn);
 		tableView.getColumns().add(locationColumn);
 		tableView.getColumns().add(goldValueColumn);
 		tableView.getColumns().add(forgeCostColumn);
 		tableView.getColumns().add(typeColumn);
-		tableView.getColumns().add(subTypeColumn);
 		tableView.getColumns().add(productOfColumn);
 		tableView.setItems(toAddList);
 		return tableView;

@@ -2,12 +2,10 @@ package beans;
 
 import java.util.List;
 
-import enums.SpecificType;
 import enums.Type;
 
 public class Item {
 
-	private int number;
 	private String name;
 	private String picture;
 	private String description;
@@ -15,7 +13,6 @@ public class Item {
 	private int goldValue;
 	private int forgeCost;
 	private Type type;
-	private SpecificType specificType;
 
 	private List<ProductOf> productOfList;
 
@@ -23,10 +20,9 @@ public class Item {
 
 	}
 
-	public Item(int number, String name, String picture, String description, List<String> locations, int goldValue,
-			int forgeCost, Type type, SpecificType specificType, List<ProductOf> productOfList) {
+	public Item(String name, String picture, String description, List<String> locations, int goldValue, int forgeCost,
+			Type type, List<ProductOf> productOfList) {
 		super();
-		this.number = number;
 		this.name = name;
 		this.picture = picture;
 		this.description = description;
@@ -34,16 +30,7 @@ public class Item {
 		this.goldValue = goldValue;
 		this.forgeCost = forgeCost;
 		this.type = type;
-		this.specificType = specificType;
 		this.productOfList = productOfList;
-	}
-
-	public int getNumber() {
-		return number;
-	}
-
-	public void setNumber(int number) {
-		this.number = number;
 	}
 
 	public String getName() {
@@ -100,14 +87,6 @@ public class Item {
 
 	public void setType(Type type) {
 		this.type = type;
-	}
-
-	public SpecificType getSpecificType() {
-		return specificType;
-	}
-
-	public void setSpecificType(SpecificType specificType) {
-		this.specificType = specificType;
 	}
 
 	public List<ProductOf> getProductOfList() {
