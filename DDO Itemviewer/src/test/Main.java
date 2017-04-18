@@ -4,7 +4,12 @@ import java.io.IOException;
 
 public class Main {
 	public static void main(String[] args) throws IOException {
-		ArchievmentReader reader = new ArchievmentReader();
-		reader.read();
+
+		Coordinater c = new Coordinater();
+		c.work();
+
 	}
+
+	// https://www.sololearn.com/Profile/120149/
+
 }

@@ -51,33 +51,8 @@ public class WindowController {
 	private ObservableList<Item> showList = FXCollections.observableArrayList();
 	private ObjectMapper mapper;
 	private FileLoader loader;
+	private List<String> mats = new ArrayList<String>();
 	private List<URL> URLS = new ArrayList<URL>();
-
-	// public List<Item> testItems() {
-	// List<Item> list = new ArrayList<Item>();
-	// Item bronzeOre = new Item("Bronze Ore", "blackore.png", "Material used
-	// for crafting bronze products.",
-	// new ArrayList<String>(), 7, 0, Type.MATERIALS, new
-	// ArrayList<ProductOf>());
-	// bronzeOre.getLocations().add("Hidell Plains");
-	// Item smallHorn = new Item("Small Horn", "smallhorn.png", "A horn
-	// extracted from a goblin. Used in crafting.",
-	// new ArrayList<String>(), 10, 0, Type.MATERIALS, new
-	// ArrayList<ProductOf>());
-	// smallHorn.getLocations().add("Goblin");
-	// Item bronzeIngot = new Item("Bronze Ingot", "blueingot.png", "Processed
-	// from bronze ore, used for crafting.",
-	// new ArrayList<String>(), 10, 60, Type.MATERIALS, new
-	// ArrayList<ProductOf>());
-	// bronzeIngot.getProductOfList().add(new ProductOf(2, bronzeOre));
-	// bronzeIngot.getProductOfList().add(new ProductOf(1, smallHorn));
-	//
-	// list.add(bronzeIngot);
-	// list.add(bronzeOre);
-	// list.add(smallHorn);
-	// return list;
-	//
-	// }
 
 	public void start(Stage stage) throws MalformedURLException {
 		init(stage);
@@ -85,19 +60,43 @@ public class WindowController {
 	}
 
 	public void getURLS() throws IOException {
-		URL urlmain = new URL("http://ddon.wikidot.com/ore:home");
-		Document doc = Jsoup.connect(urlmain.toString()).get();
-		Elements tables = doc.select("table");
-		for (Element row : tables.select("tr")) {
-			Elements td = row.select("td");
-			Elements select = td.select("a");
-			String string = select.toString();
+		// mats.add("ore");
+		// mats.add("sand");
+		mats.add("fabric");
+		mats.add("thread");
+		// mats.add("meat");
+		// mats.add("horn");
+		// mats.add("ingot");
+		// mats.add("fur");
+		// mats.add("pelt");
+		// mats.add("bone");
+		// mats.add("fang");
+		// mats.add("feather");
+		// mats.add("gemstone");
+		// mats.add("grass");
+		// mats.add("mushroom");
+		// mats.add("wood");
+		// mats.add("liquids");
+		// mats.add("scroll");
+		// mats.add("other");
+		// mats.add("unappraised");
+		// mats.add("regional");
+		String e = "http://ddon.wikidot.com/";
+		String ee = ":home";
+		for (String ss : mats) {
+			String urlmain = e + ss + ee;
+			Document doc = Jsoup.connect(urlmain).get();
+			Elements tables = doc.select("table");
+			for (Element row : tables.select("tr")) {
+				Elements td = row.select("td");
+				Elements select = td.select("a");
+				String string = select.toString();
+				String[] split = string.split("\"");
+				if (split.length > 1) {
+					URLS.add(new URL("http://ddon.wikidot.com" + split[1]));
+				}
 
-			String[] split = string.split("\"");
-			if (split.length > 1) {
-				URLS.add(new URL("http://ddon.wikidot.com" + split[1]));
 			}
-
 		}
 
 	}
@@ -200,16 +199,24 @@ public class WindowController {
 			public void handle(ActionEvent event) {
 				List<Item> toPersist = new ArrayList<Item>();
 				for (URL url : URLS) {
+					Item item = null;
 					try {
-						List<String> loadInfos = loader.loadInfos(url);
-						String string = loadInfos.get(4);
-						String replace = string.replace(" G", "");
-						Item item = new Item(loadInfos.get(2), loadInfos.get(1), loadInfos.get(6),
-								new ArrayList<String>(), Integer.parseInt(replace), Integer.parseInt(loadInfos.get(3)),
-								Type.MATERIALS, new ArrayList<ProductOf>());
-						for (int x = 7; x < loadInfos.size(); x++) {
-							item.getLocations().add(loadInfos.get(x));
+						// List<String> loadInfos =
+						loader.loadInfos(url);
+						// String string = loadInfos.get(4);
+						// String replace = string.replace(" G", "");
+						// String replace2 = replace.replace(",", "");
+						for (String mat : mats) {
+							if (url.toString().contains(mat)) {
+								if (url.toString().contains("corrodedgianteyeball")) {
+
+								} else {
+									// item = createItem(loadInfos, replace2,
+									// Type.MATERIALS);
+								}
+							}
 						}
+
 						toPersist.add(item);
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -225,7 +232,9 @@ public class WindowController {
 					e.printStackTrace();
 				}
 			}
+
 		});
+
 		searchField = new TextField();
 		searchField.setPromptText("Itemname");
 		searchField.textProperty().addListener(new ChangeListener<String>() {
@@ -261,6 +270,22 @@ public class WindowController {
 
 	}
 
+	public Item createItem(List<String> loadInfos, String replace, Type type) {
+		try {
+			Item item = new Item(loadInfos.get(2), loadInfos.get(1), loadInfos.get(6), new ArrayList<String>(),
+					Integer.parseInt(replace), Integer.parseInt(loadInfos.get(3)), type, new ArrayList<ProductOf>());
+			for (int x = 7; x < loadInfos.size(); x++) {
+				item.getLocations().add(loadInfos.get(x));
+			}
+			return item;
+		} catch (NumberFormatException e) {
+			System.err.println(e);
+			System.err.println(loadInfos.get(2));
+		}
+		return null;
+
+	}
+
 	public TableView<Item> initCenter() {
 		tableView = new TableView<Item>();
 		TableColumn<Item, String> nameColumn = new TableColumn<Item, String>("Name");
@@ -289,7 +314,6 @@ public class WindowController {
 		tableView.getColumns().add(productOfColumn);
 		tableView.setItems(toAddList);
 		return tableView;
-
 	}
 
 }
