@@ -9,46 +9,50 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
-public class ArchievmentReader implements Runnable {
-	int from;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+
+public class ArchievmentReader implements Runnable
+
+{
+	public void setTo(int to) {
+		this.to = to;
+	}
+
+	SimpleIntegerProperty from = new SimpleIntegerProperty();
 	int to;
 
-	String name;
 	File file = new File("badge.txt");
-	String line;
 
-	public ArchievmentReader(String name, int from, int to) {
+	public ArchievmentReader(int from, int to) {
 		super();
-		this.name = name;
-		this.from = from;
+		this.from.set(from);
 		this.to = to;
 		System.err.println(toString());
 	}
 
 	@Override
 	public String toString() {
-		return "ArchievmentReader [from=" + from + ", to=" + to + ", name=" + name + "]";
+		return "ArchievmentReader [from=" + from + ", to=" + to + "]";
 	}
 
-	public void read(int from, int to) throws IOException {
-
+	public void read(IntegerProperty from, int to) throws IOException {
 		FileWriter fileWriter = new FileWriter(file, true);
-		for (; from < to; from++) {
-			if (from % 50 == 0)
-				System.err.println(name + "@Profil: " + from);
+		for (; from.getValue().intValue() < to; from.set((from.get() + 1))) {
+			if (from.get() % 50 == 0)
+				System.err.println("@Profil: " + from.get());
 			try {
-				Document doc = Jsoup.connect("https://www.sololearn.com/Profile/" + from + "/").get();
+				Document doc = Jsoup.connect("https://www.sololearn.com/Profile/" + from.get() + "/").get();
 				int counter = 71;
 				Elements select = doc.getElementsByClass("userAchievements");
 				Elements select2 = select.select("div#achievement" + counter);
 				if (select2.hasClass("achievement disabled") == false) {
-					fileWriter.append("\n     https://www.sololearn.com/Profile/" + from + "/");
-					System.err.println("https://www.sololearn.com/Profile/" + from + "/");
+					fileWriter.append("\n     https://www.sololearn.com/Profile/" + from.get() + "/");
+					System.err.println("https://www.sololearn.com/Profile/" + from.get() + "/");
 					fileWriter.flush();
 				}
 			} catch (HttpStatusException e) {
 			}
-
 		}
 		fileWriter.close();
 	}
@@ -61,4 +65,5 @@ public class ArchievmentReader implements Runnable {
 		}
 
 	}
+
 }
