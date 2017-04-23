@@ -18,7 +18,7 @@ import javafx.stage.Stage;
 public class Coordinater {
 
 	int start = 1039999;
-	int increment = 9999;
+	int increment = 10000;
 	int END = 1500000;
 	int size = 4;
 	List<Thread> threads;
@@ -52,6 +52,7 @@ public class Coordinater {
 	public void initView(Stage stage) {
 		stage = new Stage();
 		BorderPane root = new BorderPane();
+		root.setPrefSize(270, 300);
 		Scene scene = new Scene(root);
 		ListView<ViewElement> listView = new ListView<ViewElement>();
 		root.setCenter(listView);
@@ -80,7 +81,7 @@ public class Coordinater {
 					if (threads.size() < size) {
 						final ViewElement element = new ViewElement(new ProgressBar(),
 								new ArchievmentReader(start = (start + 1), start = (start + increment)),
-								new Label("Reader" + start + " - " + (start + increment)));
+								new Label("Reader: " + start + " - " + (start + increment)));
 						Thread thread = new Thread(element.getReader());
 						threads.add(thread);
 						Platform.runLater(new Runnable() {

@@ -17,10 +17,12 @@ public class ViewElement extends HBox {
 	double d;
 
 	public ViewElement(ProgressBar bar, ArchievmentReader reader, Label label) {
+		this.setSpacing(5);
 		this.bar = bar;
 		this.reader = reader;
 		this.label = label;
 		this.integerProperty = this.reader.from;
+		this.bar.setMinWidth(100);
 		test();
 		calc();
 	}

@@ -33,7 +33,7 @@ public class ArchievmentReader implements Runnable
 
 	@Override
 	public String toString() {
-		return "ArchievmentReader [from=" + from + ", to=" + to + "]";
+		return "ArchievmentReader [from=" + from.get() + ", to=" + to + "]";
 	}
 
 	public void read(IntegerProperty from, int to) throws IOException {
